@@ -3,6 +3,7 @@ package com.example.lerner
 import android.content.Context
 import java.io.File
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.streams.toList
 
 class WordDb(private val context: Context) {
@@ -15,8 +16,25 @@ class WordDb(private val context: Context) {
     private var unlearnedList : LinkedList<String> = loadUserWords(FILENAME_REMAINING)
     private val wordset : LinkedList<String> = loadFromDb()
 
-    private fun loadUserWords(name : String) : LinkedList<String> = File(context.filesDir, name).readLines() as LinkedList<String>
-    private fun loadFromDb() : LinkedList<String> = context.resources.openRawResource(R.raw.testdb).bufferedReader(Charsets.ISO_8859_1).lines().toList() as LinkedList<String>
+    private fun loadUserWords(name : String) : LinkedList<String> = LinkedList(openFile(context.filesDir, name).readLines().toList())
+    private fun loadFromDb() : LinkedList<String> = context.resources.openRawResource(R.raw.fivek).bufferedReader(Charsets.ISO_8859_1).lines().toList().toLinkedList()
+
+
+    fun <T> List<T>.toLinkedList() : LinkedList<T> {
+        val items = LinkedList<T>()
+
+        for(item : T in this)
+            items.add(item)
+
+        return items
+    }
+
+    private fun openFile(parent : File, child : String) : File {
+        val file = File(parent, child)
+        file.createNewFile()
+
+        return file
+    }
 
     private fun moveWord(word : String, from : LinkedList<String>, to : LinkedList<String>) {
         from.add(
@@ -26,6 +44,7 @@ class WordDb(private val context: Context) {
         saveUserWords()
     }
 
+    fun pullRandomWordFromUnlearned() : String = unlearnedList[Random().nextInt(unlearnedList.size)]
     fun learnWord(word : String) = moveWord(word, unlearnedList, learnedList)
     fun forgetWord(word : String) = moveWord(word, learnedList, unlearnedList)
 
